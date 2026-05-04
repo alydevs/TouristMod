@@ -18,23 +18,8 @@ namespace Tourist;
 public sealed class Plugin : HostedPlugin
 {
     public Plugin(
-        IDalamudPluginInterface pluginInterface,
-        IPluginLog pluginLog,
-        IDataManager dataManager,
-        ICommandManager commandManager,
-        IClientState clientState,
-        IGameGui gameGui,
-        IFramework framework,
-        IGameInteropProvider gameInteropProvider)
-        : base(
-            pluginInterface,
-            pluginLog,
-            dataManager,
-            commandManager,
-            clientState,
-            gameGui,
-            framework,
-            gameInteropProvider)
+        IDalamudPluginInterface pluginInterface)
+        : base(pluginInterface)
     {
         CreateHost();
         Start();

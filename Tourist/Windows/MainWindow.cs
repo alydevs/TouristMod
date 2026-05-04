@@ -277,7 +277,11 @@ public sealed class MainWindow : Window, IDisposable
 
             if (ImGui.Button("Open map"))
             {
-                _gameGui.OpenMapLocation(adventure);
+                var map = adventure.Level.Value.Map.Value;
+                var territory = map.TerritoryType.Value;
+                var worldPos = new Vector3(adventure.Level.Value.X, adventure.Level.Value.Y, adventure.Level.Value.Z);
+
+                _gameGui.OpenMapWithMapLink(territory.RowId, map.RowId, worldPos);
             }
         }
     }

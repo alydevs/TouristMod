@@ -14,7 +14,8 @@ public class MarkerService(
     PluginConfig pluginConfig,
     IPluginLog pluginLog,
     IDataManager dataManager,
-    VfxService vfxService)
+    VfxService vfxService,
+    IUnlockState unlockState)
     : IHostedService
 {
     private const string MarkerPath = "bgcommon/world/common/vfx_for_live/eff/b0810_tnsk_y.avfx";
@@ -35,7 +36,7 @@ public class MarkerService(
         return Task.CompletedTask;
     }
 
-    private void OnTerritoryChange(ushort territory)
+    private void OnTerritoryChange(uint territory)
     {
         if (!pluginConfig.ShowArrVistas)
         {
@@ -63,7 +64,7 @@ public class MarkerService(
         vfxService.QueueRemoveAll();
     }
 
-    private void SpawnVfxForZone(ushort territory)
+    private void SpawnVfxForZone(uint territory)
     {
         var row = 0;
         foreach (var adventure in dataManager.GetExcelSheet<Adventure>())
@@ -80,20 +81,15 @@ public class MarkerService(
                 continue;
             }
 
-            unsafe
+            if (unlockState.IsAdventureComplete(adventure))
             {
-                var playerState = PlayerState.Instance();
-                if (playerState != null && playerState->IsAdventureComplete((uint)(row - 1)))
-                {
-                    continue;
-                }
+                continue;
             }
-
 
             var loc = adventure.Level.Value;
             var pos = new Vector3(loc.X, loc.Z, loc.Y + 0.5f);
 
-            vfxService.QueueSpawn((ushort)row, MarkerPath, pos, Quaternion.Zero);
+            vfxService.QueueSpawn(row, MarkerPath, pos, Quaternion.Zero);
         }
     }
 }

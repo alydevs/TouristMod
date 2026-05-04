@@ -9,6 +9,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.15.0.0] - 2026-05-04
+- API15 support
+
 ## [1.14.0.0] - 2025-12-30
 - API14 support
 
@@ -168,7 +171,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Initial release
 
-[unreleased]: https://github.com/foophoof/Tourist/compare/v1.14.0.0...main
+[unreleased]: https://github.com/foophoof/Tourist/compare/v1.15.0.0...main
+[1.15.0.0]: https://github.com/foophoof/Tourist/compare/v1.14.0.0...v1.15.0.0
 [1.14.0.0]: https://github.com/foophoof/Tourist/compare/v1.13.0.0...v1.14.0.0
 [1.13.0.0]: https://github.com/foophoof/Tourist/compare/v1.12.1.2...v1.13.0.0
 [1.12.1.2]: https://github.com/foophoof/Tourist/compare/v1.12.1.1...v1.12.1.2
