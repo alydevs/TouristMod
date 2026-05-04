@@ -9,10 +9,7 @@ namespace Tourist.Services;
 
 public class VistaUnlockedListenerService(IGameInteropProvider gameInteropProvider, IPluginLog pluginLog, VfxService vfxService) : IHostedService
 {
-
-    [Signature("E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 8B 4C 24 70 E8")]
     private Hook<VistaUnlockedDelegate>? _vistaUnlockedHook;
-
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
