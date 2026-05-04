@@ -14,7 +14,8 @@ public class MarkerService(
     PluginConfig pluginConfig,
     IPluginLog pluginLog,
     IDataManager dataManager,
-    VfxService vfxService)
+    VfxService vfxService,
+    IUnlockState unlockState)
     : IHostedService
 {
     private const string MarkerPath = "bgcommon/world/common/vfx_for_live/eff/b0810_tnsk_y.avfx";
@@ -80,15 +81,10 @@ public class MarkerService(
                 continue;
             }
 
-            unsafe
+            if (unlockState.IsAdventureComplete(adventure))
             {
-                var playerState = PlayerState.Instance();
-                if (playerState != null && playerState->IsAdventureComplete((uint)(row - 1)))
-                {
-                    continue;
-                }
+                continue;
             }
-
 
             var loc = adventure.Level.Value;
             var pos = new Vector3(loc.X, loc.Z, loc.Y + 0.5f);
