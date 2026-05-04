@@ -31,7 +31,7 @@ public unsafe class VfxService : IHostedService
     }
 
     private SemaphoreSlim Mutex { get; } = new(1, 1);
-    private Dictionary<ushort, nint> Spawned { get; } = [];
+    private Dictionary<int, nint> Spawned { get; } = [];
     private Queue<IQueueAction> Queue { get; } = [];
 
     public Task StartAsync(CancellationToken cancellationToken)
@@ -112,13 +112,13 @@ public unsafe class VfxService : IHostedService
         Spawned.Clear();
     }
 
-    internal void QueueSpawn(ushort id, string path, Vector3 pos, Quaternion rotation)
+    internal void QueueSpawn(int id, string path, Vector3 pos, Quaternion rotation)
     {
         using var guard = Mutex.With();
         Queue.Enqueue(new AddQueueAction(id, path, pos, rotation));
     }
 
-    internal void QueueRemove(ushort id)
+    internal void QueueRemove(int id)
     {
         using var guard = Mutex.With();
         Queue.Enqueue(new RemoveQueueAction(id));
@@ -193,11 +193,11 @@ public unsafe class VfxService : IHostedService
 internal interface IQueueAction;
 
 internal sealed record AddQueueAction(
-    ushort Id,
+    int Id,
     string Path,
     Vector3 Position,
     Quaternion Rotation) : IQueueAction;
 
-internal sealed record RemoveQueueAction(ushort Id) : IQueueAction;
+internal sealed record RemoveQueueAction(int Id) : IQueueAction;
 
 internal sealed record RemoveRawQueueAction(nint Pointer) : IQueueAction;

@@ -36,7 +36,7 @@ public class MarkerService(
         return Task.CompletedTask;
     }
 
-    private void OnTerritoryChange(ushort territory)
+    private void OnTerritoryChange(uint territory)
     {
         if (!pluginConfig.ShowArrVistas)
         {
@@ -64,7 +64,7 @@ public class MarkerService(
         vfxService.QueueRemoveAll();
     }
 
-    private void SpawnVfxForZone(ushort territory)
+    private void SpawnVfxForZone(uint territory)
     {
         var row = 0;
         foreach (var adventure in dataManager.GetExcelSheet<Adventure>())
@@ -89,7 +89,7 @@ public class MarkerService(
             var loc = adventure.Level.Value;
             var pos = new Vector3(loc.X, loc.Z, loc.Y + 0.5f);
 
-            vfxService.QueueSpawn((ushort)row, MarkerPath, pos, Quaternion.Zero);
+            vfxService.QueueSpawn(row, MarkerPath, pos, Quaternion.Zero);
         }
     }
 }
