@@ -39,7 +39,7 @@ public sealed class MainWindow : Window, IDisposable
 
     private static bool _arrVistasExpanded;
     private static DateTime _arrVistasExpandedDT;
-    private static (int idx, float distance) _closest = (0,float.MaxValue);
+    private static (int idx, float distance) _closest = (0, float.MaxValue);
     private unsafe static bool ARRVistasExpanded
     {
         get
@@ -102,8 +102,11 @@ public sealed class MainWindow : Window, IDisposable
         var adventures = GetAdventures();
 
         int currentLvl = 1;
+        List<int> idxList = [];
         foreach (var group in adventures)
         {
+            foreach (var (adventure, idx) in group)
+                idxList.Add(idx);
             if (currentLvl != 1 && group.First().row.MinLevel != currentLvl)
                 ImGui.Spacing();
             currentLvl = group.First().row.MinLevel;
@@ -122,6 +125,8 @@ public sealed class MainWindow : Window, IDisposable
                 DrawGroup(group);
             }
         }
+        if (!idxList.Contains(_closest.idx))
+            _closest = (0, float.MaxValue);
     }
 
     private void DrawMenuBar()
@@ -351,7 +356,7 @@ public sealed class MainWindow : Window, IDisposable
                 Vector3 difference = obj.Position - worldPos;
                 float distance = MathF.Sqrt(difference.X * difference.X + difference.Y * difference.Y + difference.Z * difference.Z);
                 next = $" ({distance:0}y){next}";
-                if (_closest.distance > distance)
+                if (_closest.idx == 0 || _closest.distance > distance)
                     _closest = (idx, distance);
             }
             using (ImRaii.PushColor(ImGuiCol.Text, colour.GetValueOrDefault(), colour != null))
