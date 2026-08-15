@@ -39,6 +39,7 @@ public sealed class MainWindow : Window, IDisposable
 
     private static bool _arrVistasExpanded;
     private static DateTime _arrVistasExpandedDT;
+    private static (int idx, float distance) _closest = (0,float.MaxValue);
     private unsafe static bool ARRVistasExpanded
     {
         get
@@ -318,11 +319,11 @@ public sealed class MainWindow : Window, IDisposable
             Vector4? colour = null;
             if (has)
             {
-                colour = new Vector4(0.8f, 0.8f, 0.8f, 1.0f);
+                colour = ImGuiColors.DalamudGrey2;
             }
             else if (available)
             {
-                colour = new Vector4(0f, 1f, 0f, 1f);
+                colour = ImGuiColors.ParsedGreen;
                 if (_pluginConfig.ShowTimeLeft)
                 {
                     countdown = availability?.end;
@@ -334,6 +335,8 @@ public sealed class MainWindow : Window, IDisposable
             }
             if (blocked)
                 colour = ImGuiColors.DalamudRed;
+            if (colour == ImGuiColors.ParsedGreen && _closest.idx == idx)
+                colour = ImGuiColors.DalamudOrange;
 
             var next = countdown.HasValue ? $" ({(countdown.Value - DateTimeOffset.UtcNow).ToHumanReadable()})" : string.Empty;
 
@@ -346,7 +349,10 @@ public sealed class MainWindow : Window, IDisposable
             if (_objectTable[0] is IGameObject obj && _clientState.TerritoryType == territory.RowId)
             {
                 Vector3 difference = obj.Position - worldPos;
-                next = $" ({MathF.Sqrt(difference.X * difference.X + difference.Y * difference.Y + difference.Z * difference.Z):0}y){next}";
+                float distance = MathF.Sqrt(difference.X * difference.X + difference.Y * difference.Y + difference.Z * difference.Z);
+                next = $" ({distance:0}y){next}";
+                if (_closest.distance > distance)
+                    _closest = (idx, distance);
             }
             using (ImRaii.PushColor(ImGuiCol.Text, colour.GetValueOrDefault(), colour != null))
                 if (!ImGui.CollapsingHeader($"#{idx + 1:000} - {name.TextValue}{next}###adventure-{adventure.RowId}", flags: ImGuiTreeNodeFlags.DefaultOpen))
