@@ -127,6 +127,7 @@ public sealed class MainWindow : Window, IDisposable
 
         DrawOptionsMenu();
         DrawHelpMenu();
+        using var clock = ImRaii.Menu(DateUtil.EorzeaTime().ToString("H:mm"));
     }
 
     private void DrawOptionsMenu()
@@ -323,9 +324,9 @@ public sealed class MainWindow : Window, IDisposable
                     countdown = availability?.end;
                 }
             }
-            else if (availability.HasValue && _pluginConfig.ShowTimeUntilAvailable)
+            else if (_pluginConfig.ShowTimeUntilAvailable)
             {
-                countdown = availability.Value.start;
+                countdown = availability?.start;
             }
             if (blocked)
                 colour = ImGuiColors.DalamudRed;
@@ -372,7 +373,9 @@ public sealed class MainWindow : Window, IDisposable
                 ImGui.SetTooltip("Stop vnav (for if it gets stuck)");
 
             string? emote = adventure.Emote.ValueNullable?.TextCommand.ValueNullable?.Command.ExtractText();
-            if (emote != null && !emote.Equals("/lookout"))
+            bool time = adventure.MinTime != 0 || adventure.MaxTime != 0;
+            bool weather = !Weathers.WeatherString(adventure.RowId, _dataManager).Equals("Any");
+            if ((emote != null && !emote.Equals("/lookout")) || time || weather)
             {
                 using var table = ImRaii.Table("table", 2);
                 if (table)
