@@ -56,12 +56,28 @@ public sealed class MainWindow : Window, IDisposable
 
     private readonly static Dictionary<int, Vector3> locationOverrides = new() {
         { 104, new(867.34906f, 47.032375f, -32.1302f) }, // Voor Sian Siran
+        { 117, new(543.2363f, 219.76675f, 652.7301f) }, // fractal continuum
         { 133, new(-392.68234f, 113.04094f, 122.56957f) }, // The Old Father
         { 140, new(-595.59674f, -169.00003f, -366.43912f) }, // Centrifugal Crystal Engine
+        { 153, new(181.46855f, 165.69328f, -782.3936f) }, // Ala Gannha
+        { 162, new(678.4738f, 70f, 512.5864f) }, // hidden tunnel
+        { 163, new(-777.7409f, 240.90013f, 28.044926f) }, // Porta Praetoria
+        { 172, new(506.11508f, 58.843567f, 790.02814f) }, // Sakazuki
+        { 179, new(-325.8019f, 94.82681f, -755.7113f) }, // Doma Castle
+        { 181, new(-312.05276f, 59.25094f, 507.4568f) }, // Yuzuka Manor
+        { 201, new(1.2207426f, 33.522175f, -474.66684f) }, // Crick
+        { 209, new(-192.23924f, 35.58688f, -77.07811f) }, // Temenos Rookery
+        { 210, new(44.42447f, -2.6557508f, -128.63736f) }, // glory gate
+        { 212, new(-10.925671f, 48.05f, -2.1686547f) }, // eulmoran army hq
+        { 227, new(587.98975f, -42.814953f, -384.24127f) }, // Red Serai
+        { 239, new(-390.17166f, 38.664627f, 548.02734f) }, // fort gohn
+        { 241, new(-854.3621f, -82.97393f, 290.2913f) }, // covered halls
     };
 
     private readonly static Dictionary<int, string> comments = new() {
-        { 140, "vnav couldn't fly inside this structure; the vista is inside on the left wall" }
+        { 140, "vnav couldn't fly inside this structure; the vista is inside on the left wall" },
+        { 162, "Talk to npc, vista is inside tunnel, between crates on the right before the large spiral stairwell" },
+        { 212, "Big jump. The chain is solid fyi." }, // eulmoran army hq
     };
 
     public MainWindow(

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Dalamud.NET.Sdk/15.0.0">
 
     <PropertyGroup>
-        <Version>1.15.1000.10</Version>
+        <Version>1.15.1000.11</Version>
         <PackageLicenseExpression>EUPL-1.2</PackageLicenseExpression>
     </PropertyGroup>
 
