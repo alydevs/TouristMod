@@ -55,7 +55,13 @@ public sealed class MainWindow : Window, IDisposable
     }
 
     private readonly static Dictionary<int, Vector3> locationOverrides = new() {
-        { 104, new(867.34906f, 47.032375f, -32.1302f) } // Voor Sian Siran
+        { 104, new(867.34906f, 47.032375f, -32.1302f) }, // Voor Sian Siran
+        { 133, new(-392.68234f, 113.04094f, 122.56957f) }, // The Old Father
+        { 140, new(-595.59674f, -169.00003f, -366.43912f) }, // Centrifugal Crystal Engine
+    };
+
+    private readonly static Dictionary<int, string> comments = new() {
+        { 140, "vnav couldn't fly inside this structure; the vista is inside on the left wall" }
     };
 
     public MainWindow(
@@ -392,7 +398,8 @@ public sealed class MainWindow : Window, IDisposable
             string? emote = adventure.Emote.ValueNullable?.TextCommand.ValueNullable?.Command.ExtractText();
             bool time = adventure.MinTime != 0 || adventure.MaxTime != 0;
             bool weather = !Weathers.WeatherString(adventure.RowId, _dataManager).Equals("Any");
-            if ((emote != null && !emote.Equals("/lookout")) || time || weather)
+            string? comment = comments.GetValueOrDefault(idx + 1);
+            if ((emote != null && !emote.Equals("/lookout")) || time || weather || comment != null)
             {
                 using var table = ImRaii.Table("table", 2);
                 if (table)
@@ -431,6 +438,15 @@ public sealed class MainWindow : Window, IDisposable
                         ImGui.TextUnformatted("Weather");
                         ImGui.TableSetColumnIndex(1);
                         ImGui.TextUnformatted(Weathers.WeatherString(adventure.RowId, _dataManager));
+                    }
+
+                    if (comment != null)
+                    {
+                        ImGui.TableNextRow();
+                        ImGui.TableSetColumnIndex(0);
+                        ImGui.TextUnformatted("Comment");
+                        ImGui.TableSetColumnIndex(1);
+                        ImGui.TextWrapped(comment);
                     }
                 }
             }
