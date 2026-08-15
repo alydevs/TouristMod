@@ -53,6 +53,10 @@ public sealed class MainWindow : Window, IDisposable
         }
     }
 
+    private readonly static Dictionary<int, Vector3> locationOverrides = new() {
+        { 104, new(867.34906f, 47.032375f, -32.1302f) } // Voor Sian Siran
+    };
+
     public MainWindow(
         IClientState clientState,
         IObjectTable objectTable,
@@ -336,7 +340,9 @@ public sealed class MainWindow : Window, IDisposable
             var name = adventure.Name.ToDalamudString();
             var map = adventure.Level.Value.Map.Value;
             var territory = map.TerritoryType.Value;
-            var worldPos = new Vector3(adventure.Level.Value.X, adventure.Level.Value.Y, adventure.Level.Value.Z);
+            Vector3 worldPos = new(adventure.Level.Value.X, adventure.Level.Value.Y, adventure.Level.Value.Z);
+            if (locationOverrides.TryGetValue(idx + 1, out var value))
+                worldPos = value;
             if (_objectTable[0] is IGameObject obj && _clientState.TerritoryType == territory.RowId)
             {
                 Vector3 difference = obj.Position - worldPos;
