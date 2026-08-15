@@ -3,16 +3,16 @@ using Dalamud.Plugin.Services;
 using Microsoft.Extensions.Hosting;
 using System.Threading;
 using System.Threading.Tasks;
-using Tourist.Windows;
+using TouristMod.Windows;
 
-namespace Tourist.Services;
+namespace TouristMod.Services;
 
 public class CommandService(ICommandManager commandManager, MainWindow mainWindow)
     : IHostedService
 {
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        commandManager.AddHandler("/tourist", new CommandInfo(HandleCommand) {HelpMessage = "Opens the Tourist interface"});
+        commandManager.AddHandler("/tourist", new CommandInfo(HandleCommand) {HelpMessage = "Opens the TouristMod interface"});
         return Task.CompletedTask;
     }
 

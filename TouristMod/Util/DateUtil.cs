@@ -1,4 +1,4 @@
-﻿namespace Tourist.Util;
+﻿namespace TouristMod.Util;
 
 public static class DateUtil
 {

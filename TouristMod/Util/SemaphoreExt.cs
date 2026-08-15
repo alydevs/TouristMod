@@ -1,6 +1,6 @@
 ﻿using System.Threading;
 
-namespace Tourist.Util;
+namespace TouristMod.Util;
 
 internal static class SemaphoreExt
 {

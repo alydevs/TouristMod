@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace Tourist.Util;
+namespace TouristMod.Util;
 
 public static class TimeSpanExt
 {

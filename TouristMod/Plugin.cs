@@ -9,10 +9,10 @@ using Lumina.Excel;
 using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using Tourist.Services;
-using Tourist.Windows;
+using TouristMod.Services;
+using TouristMod.Windows;
 
-namespace Tourist;
+namespace TouristMod;
 
 [SuppressMessage("ReSharper", "UnusedType.Global")]
 public sealed class Plugin : HostedPlugin

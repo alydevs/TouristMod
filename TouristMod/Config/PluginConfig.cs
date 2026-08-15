@@ -1,7 +1,7 @@
 ﻿using Dalamud.Configuration;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Tourist.Config;
+namespace TouristMod.Config;
 
 [SuppressMessage("ReSharper", "RedundantDefaultMemberInitializer")]
 public class PluginConfig : IPluginConfiguration

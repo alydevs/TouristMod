@@ -5,7 +5,7 @@ using Microsoft.Extensions.Hosting;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Tourist.Services;
+namespace TouristMod.Services;
 
 public class VistaUnlockedListenerService(IGameInteropProvider gameInteropProvider, IPluginLog pluginLog, VfxService vfxService) : IHostedService
 {

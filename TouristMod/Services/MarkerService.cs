@@ -5,9 +5,9 @@ using Microsoft.Extensions.Hosting;
 using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
-using Tourist.Config;
+using TouristMod.Config;
 
-namespace Tourist.Services;
+namespace TouristMod.Services;
 
 public class MarkerService(
     IClientState clientState,

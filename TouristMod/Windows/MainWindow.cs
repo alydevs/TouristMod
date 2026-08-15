@@ -1,24 +1,28 @@
-﻿using Dalamud.Interface.Utility.Raii;
+﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Colors;
+using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
+using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVWeather.Lumina;
-using Dalamud.Bindings.ImGui;
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Numerics;
-using Tourist.Config;
-using Tourist.Services;
-using Tourist.Util;
+using TouristMod.Config;
+using TouristMod.Services;
+using TouristMod.Util;
 
-namespace Tourist.Windows;
+namespace TouristMod.Windows;
 
 public sealed class MainWindow : Window, IDisposable
 {
     private readonly ExcelSheet<Adventure> _adventureSheet;
+    private readonly ExcelSheet<TerritoryType> _territoryType;
     private readonly IClientState _clientState;
     private readonly ConfigurationLoaderService _configurationLoaderService;
     private readonly IDataManager _dataManager;
@@ -27,6 +31,24 @@ public sealed class MainWindow : Window, IDisposable
     private readonly PluginConfig _pluginConfig;
     private readonly FFXIVWeatherLuminaService _weatherLuminaService;
     private readonly ExcelSheet<Weather> _weatherSheet;
+    private readonly ICommandManager _commandManager;
+    private readonly ReadOnlyDictionary<uint, uint> _territoryToAetherCurrentCompFlgSet;
+
+    private static bool _arrVistasExpanded;
+    private static DateTime _arrVistasExpandedDT;
+    private unsafe static bool ARRVistasExpanded
+    {
+        get
+        {
+            if ((DateTime.Now - _arrVistasExpandedDT).TotalSeconds > 60)
+            {
+                var playerState = PlayerState.Instance();
+                _arrVistasExpanded = playerState != null && Enumerable.Range(0, 20).All(idx => playerState->IsAdventureComplete((uint)idx));
+                _arrVistasExpandedDT = DateTime.Now;
+            }
+            return _arrVistasExpanded;
+        }
+    }
 
     public MainWindow(
         IClientState clientState,
@@ -37,7 +59,9 @@ public sealed class MainWindow : Window, IDisposable
         FFXIVWeatherLuminaService weatherLuminaService,
         ConfigurationLoaderService configurationLoaderService,
         ExcelSheet<Adventure> adventureSheet,
-        ExcelSheet<Weather> weatherSheet) : base("Tourist##MainWindow", ImGuiWindowFlags.MenuBar)
+        ExcelSheet<Weather> weatherSheet,
+        ExcelSheet<TerritoryType> territoryType,
+        ICommandManager commandManager) : base("Tourist##MainWindow", ImGuiWindowFlags.MenuBar)
     {
         _dataManager = dataManager;
         _pluginConfig = pluginConfig;
@@ -48,6 +72,12 @@ public sealed class MainWindow : Window, IDisposable
         _configurationLoaderService = configurationLoaderService;
         _adventureSheet = adventureSheet;
         _weatherSheet = weatherSheet;
+        _commandManager = commandManager;
+        _territoryType = territoryType;
+        _territoryToAetherCurrentCompFlgSet = _territoryType
+            .Where(x => x.RowId > 0 && x.AetherCurrentCompFlgSet.RowId > 0)
+            .ToDictionary(x => x.RowId, x => x.AetherCurrentCompFlgSet.RowId)
+            .AsReadOnly();
 
         Size = new Vector2(350, 450);
         SizeCondition = ImGuiCond.FirstUseEver;
@@ -61,8 +91,12 @@ public sealed class MainWindow : Window, IDisposable
 
         var adventures = GetAdventures();
 
+        int currentLvl = 1;
         foreach (var group in adventures)
         {
+            if (group.First().row.MinLevel != currentLvl)
+                ImGui.Spacing();
+            currentLvl = group.First().row.MinLevel;
             if (_pluginConfig.SortMode == SortMode.Zone)
             {
                 var zoneName = group.First().row.Level.ValueNullable?.Map.ValueNullable?.PlaceName.ValueNullable?.Name.ExtractText()
@@ -198,18 +232,65 @@ public sealed class MainWindow : Window, IDisposable
 
     }
 
-    private void DrawGroup(IGrouping<uint, (Adventure row, int idx)> group)
+    private unsafe void DrawGroup(IGrouping<uint, (Adventure row, int idx)> group)
     {
         foreach (var (adventure, idx) in group)
         {
+            bool blocked = false;
+            if (idx >= 20 && idx < 80 && !ARRVistasExpanded)
+            {
+                if (_pluginConfig.ShowUnavailable)
+                    blocked = true;
+                else
+                    continue;
+            }
+            if (idx >= 80 && idx < 142 && !QuestManager.IsQuestComplete(2107))
+            {
+                if (_pluginConfig.ShowUnavailable)
+                    blocked = true;
+                else
+                    continue;
+            }
+            if (idx >= 142 && idx < 204 && !QuestManager.IsQuestComplete(2920))
+            {
+                if (_pluginConfig.ShowUnavailable)
+                    blocked = true;
+                else
+                    continue;
+            }
+            if (idx >= 204 && idx < 250 && !QuestManager.IsQuestComplete(3604))
+            {
+                if (_pluginConfig.ShowUnavailable)
+                    blocked = true;
+                else
+                    continue;
+            }
+            if (idx >= 250 && idx < 295 && !QuestManager.IsQuestComplete(4174))
+            {
+                if (_pluginConfig.ShowUnavailable)
+                    blocked = true;
+                else
+                    continue;
+            }
+            if (idx >= 295 && idx < 323 && !QuestManager.IsQuestComplete(5006))
+            {
+                if (_pluginConfig.ShowUnavailable)
+                    blocked = true;
+                else
+                    continue;
+            }
+            if (idx >= 323 && idx < 340 && !QuestManager.IsQuestComplete(5007))
+            {
+                if (_pluginConfig.ShowUnavailable)
+                    blocked = true;
+                else
+                    continue;
+            }
             using var id = ImRaii.PushId((int)adventure.RowId);
 
             bool has;
-            unsafe
-            {
-                var playerState = PlayerState.Instance();
-                has = playerState != null && playerState->IsAdventureComplete((uint)idx);
-            }
+            var playerState = PlayerState.Instance();
+            has = playerState != null && playerState->IsAdventureComplete((uint)idx);
 
             var available = adventure.Available(_weatherLuminaService);
             var availability = adventure.NextAvailable(_weatherLuminaService);
@@ -232,6 +313,8 @@ public sealed class MainWindow : Window, IDisposable
             {
                 countdown = availability.Value.start;
             }
+            if (blocked)
+                colour = ImGuiColors.DalamudRed;
 
             var next = countdown.HasValue ? $" ({(countdown.Value - DateTimeOffset.UtcNow).ToHumanReadable()})" : string.Empty;
 
@@ -275,14 +358,30 @@ public sealed class MainWindow : Window, IDisposable
                 }
             }
 
+            var map = adventure.Level.Value.Map.Value;
+            var territory = map.TerritoryType.Value;
+            var worldPos = new Vector3(adventure.Level.Value.X, adventure.Level.Value.Y, adventure.Level.Value.Z);
             if (ImGui.Button("Open map"))
-            {
-                var map = adventure.Level.Value.Map.Value;
-                var territory = map.TerritoryType.Value;
-                var worldPos = new Vector3(adventure.Level.Value.X, adventure.Level.Value.Y, adventure.Level.Value.Z);
-
                 _gameGui.OpenMapWithMapLink(territory.RowId, map.RowId, worldPos);
+            ImGui.SameLine();
+            if (ImGui.Button("Navigate to"))
+            {
+                _gameGui.OpenMapWithMapLink(territory.RowId, map.RowId, worldPos);
+                if (_clientState.TerritoryType == territory.RowId)
+                {
+                    if (playerState != null &&
+                            _territoryToAetherCurrentCompFlgSet.TryGetValue(territory.RowId, out uint aetherCurrentCompFlgSet) &&
+                            playerState->IsAetherCurrentZoneComplete(aetherCurrentCompFlgSet))
+                        _commandManager.ProcessCommand($"/vnav flyto {worldPos.X} {worldPos.Y} {worldPos.Z}");
+                    else
+                        _commandManager.ProcessCommand($"/vnav moveto {worldPos.X} {worldPos.Y} {worldPos.Z}");
+                }
             }
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip("Currently, mounting is not done automatically. Mount up to start moving.");
+            ImGui.SameLine();
+            if (ImGui.Button("Stop vnav"))
+                _commandManager.ProcessCommand("/vnav stop");
         }
     }
     private string WeatherString(uint[] weathers)
@@ -316,7 +415,7 @@ public sealed class MainWindow : Window, IDisposable
 
     private bool ShouldShow((Adventure row, int idx) entry)
     {
-        if (_pluginConfig.OnlyShowCurrentZone && entry.row.Level.Value.Territory.RowId != _clientState.TerritoryType)
+        if (_pluginConfig.OnlyShowCurrentZone && entry.idx > 80 && entry.row.Level.Value.Territory.RowId != _clientState.TerritoryType)
         {
             return false;
         }

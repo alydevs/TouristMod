@@ -7,14 +7,14 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Tourist.Services;
+namespace TouristMod.Services;
 
 public class WindowService(
     IDalamudPluginInterface pluginInterface,
     IEnumerable<Window> pluginWindows,
     IWindowSystemFactory windowSystemFactory) : IHostedService
 {
-    private IWindowSystem WindowSystem { get; } = windowSystemFactory.Create("Tourist");
+    private IWindowSystem WindowSystem { get; } = windowSystemFactory.Create("TouristMod");
 
     public Task StartAsync(CancellationToken cancellationToken)
     {

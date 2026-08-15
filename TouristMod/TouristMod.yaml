@@ -1,9 +1,11 @@
-﻿name: Tourist
-author: Anna, maintained by foophoof
+﻿name: TouristMod
+author: Anna, maintained by foophoof, modified by alydevs
 punchline: Finish your sightseeing log.
 description: |-
-  Tourist adds a window to assist with the sightseeing log.
+  TouristMod adds a window to assist with the sightseeing log.
 
+  - ! Added vnavmesh support
+  - ! Hide vistas if corresponding quest is not complete
   - Show when sightseeing log vistas are available
   - Add markers for ARR vistas
   - Open vista locations on your map
@@ -11,7 +13,7 @@ description: |-
   - Show the command needed for each vista
 
   "sightseeing" icon by muhammad, from thenounproject.com CC BY 3.0
-repo_url: https://github.com/foophoof/Tourist/
+repo_url: https://github.com/alydevs/TouristModMod/
 tags:
   - Utility
   - Sightseeing

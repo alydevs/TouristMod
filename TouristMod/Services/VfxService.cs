@@ -9,9 +9,9 @@ using System.Numerics;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Tourist.Util;
+using TouristMod.Util;
 
-namespace Tourist.Services;
+namespace TouristMod.Services;
 
 // Mostly copied from https://git.anna.lgbt/anna/OrangeGuidanceTomestone/src/branch/main/client/Vfx.cs
 public unsafe class VfxService : IHostedService

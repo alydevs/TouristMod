@@ -3,7 +3,7 @@ using Lumina.Excel.Sheets;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Tourist.Util;
+namespace TouristMod.Util;
 
 public static class AdventureExt
 {

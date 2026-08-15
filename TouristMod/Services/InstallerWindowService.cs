@@ -2,9 +2,9 @@
 using Microsoft.Extensions.Hosting;
 using System.Threading;
 using System.Threading.Tasks;
-using Tourist.Windows;
+using TouristMod.Windows;
 
-namespace Tourist.Services;
+namespace TouristMod.Services;
 
 public class InstallerWindowService(IDalamudPluginInterface pluginInterface, MainWindow mainWindow) : IHostedService
 {

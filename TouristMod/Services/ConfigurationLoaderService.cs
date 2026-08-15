@@ -3,9 +3,9 @@ using Dalamud.Plugin.Services;
 using Microsoft.Extensions.Hosting;
 using System.Threading;
 using System.Threading.Tasks;
-using Tourist.Config;
+using TouristMod.Config;
 
-namespace Tourist.Services;
+namespace TouristMod.Services;
 
 public class ConfigurationLoaderService(IDalamudPluginInterface pluginInterface, IPluginLog pluginLog) : IHostedService
 {
