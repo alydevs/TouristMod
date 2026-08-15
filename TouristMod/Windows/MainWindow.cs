@@ -339,7 +339,7 @@ public sealed class MainWindow : Window, IDisposable
             if (_objectTable[0] is IGameObject obj && _clientState.TerritoryType == territory.RowId)
             {
                 Vector3 difference = obj.Position - worldPos;
-                next = $" ({MathF.Sqrt(difference.X * difference.X + difference.Z * difference.Z):0}y){next}";
+                next = $" ({MathF.Sqrt(difference.X * difference.X + difference.Y * difference.Y + difference.Z * difference.Z):0}y){next}";
             }
             using (ImRaii.PushColor(ImGuiCol.Text, colour.GetValueOrDefault(), colour != null))
                 if (!ImGui.CollapsingHeader($"#{idx + 1:000} - {name.TextValue}{next}###adventure-{adventure.RowId}", flags: ImGuiTreeNodeFlags.DefaultOpen))
