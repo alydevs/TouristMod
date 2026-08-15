@@ -1,5 +1,7 @@
 ﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface.Colors;
+using Dalamud.Interface.Components;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Services;
@@ -26,6 +28,7 @@ public sealed class MainWindow : Window, IDisposable
     private readonly IClientState _clientState;
     private readonly ConfigurationLoaderService _configurationLoaderService;
     private readonly IDataManager _dataManager;
+    private readonly IObjectTable _objectTable;
     private readonly IGameGui _gameGui;
     private readonly MarkerService _markerService;
     private readonly PluginConfig _pluginConfig;
@@ -52,6 +55,7 @@ public sealed class MainWindow : Window, IDisposable
 
     public MainWindow(
         IClientState clientState,
+        IObjectTable objectTable,
         IDataManager dataManager,
         IGameGui gameGui,
         MarkerService markerService,
@@ -66,6 +70,7 @@ public sealed class MainWindow : Window, IDisposable
         _dataManager = dataManager;
         _pluginConfig = pluginConfig;
         _clientState = clientState;
+        _objectTable = objectTable;
         _gameGui = gameGui;
         _weatherLuminaService = weatherLuminaService;
         _markerService = markerService;
@@ -94,7 +99,7 @@ public sealed class MainWindow : Window, IDisposable
         int currentLvl = 1;
         foreach (var group in adventures)
         {
-            if (group.First().row.MinLevel != currentLvl)
+            if (currentLvl != 1 && group.First().row.MinLevel != currentLvl)
                 ImGui.Spacing();
             currentLvl = group.First().row.MinLevel;
             if (_pluginConfig.SortMode == SortMode.Zone)
@@ -195,6 +200,13 @@ public sealed class MainWindow : Window, IDisposable
             _pluginConfig.OnlyShowCurrentZone = onlyShowCurrentZone;
             _configurationLoaderService.Save();
         }
+
+        var showBlocked = _pluginConfig.ShowBlocked;
+        if (ImGui.MenuItem("Show inaccessible", ref showBlocked))
+        {
+            _pluginConfig.ShowBlocked = showBlocked;
+            _configurationLoaderService.Save();
+        }
     }
 
     private void DrawArrVistasMenuItem()
@@ -286,6 +298,8 @@ public sealed class MainWindow : Window, IDisposable
                 else
                     continue;
             }
+            if (blocked && !_pluginConfig.ShowBlocked)
+                continue;
             using var id = ImRaii.PushId((int)adventure.RowId);
 
             bool has;
@@ -319,52 +333,24 @@ public sealed class MainWindow : Window, IDisposable
             var next = countdown.HasValue ? $" ({(countdown.Value - DateTimeOffset.UtcNow).ToHumanReadable()})" : string.Empty;
 
             var name = adventure.Name.ToDalamudString();
-            using (ImRaii.PushColor(ImGuiCol.Text, colour.GetValueOrDefault(), colour != null))
-                if (!ImGui.CollapsingHeader($"#{idx + 1:000} - {name.TextValue}{next}###adventure-{adventure.RowId}"))
-                    continue;
-
-            using (var table = ImRaii.Table("table", 2))
-            {
-                if (table)
-                {
-                    ImGui.TableSetupColumn("Label", ImGuiTableColumnFlags.WidthFixed,
-                        ImGui.CalcTextSize("Eorzea time").X + ImGui.GetStyle().ItemSpacing.X * 2);
-                    ImGui.TableSetupColumn("Value");
-
-                    ImGui.TableNextRow();
-                    ImGui.TableSetColumnIndex(0);
-                    ImGui.TextUnformatted("Command");
-                    ImGui.TableSetColumnIndex(1);
-                    ImGui.TextUnformatted(adventure.Emote.ValueNullable?.TextCommand.ValueNullable?.Command.ExtractText() ?? "<unk>");
-
-                    ImGui.TableNextRow();
-                    ImGui.TableSetColumnIndex(0);
-                    ImGui.TextUnformatted("Eorzea time");
-                    ImGui.TableSetColumnIndex(1);
-                    if (adventure.MinTime != 0 || adventure.MaxTime != 0)
-                    {
-                        ImGui.TextUnformatted($"{adventure.MinTime / 100:00}:00 to {adventure.MaxTime / 100 + 1:00}:00");
-                    }
-                    else
-                    {
-                        ImGui.TextUnformatted("Any");
-                    }
-
-                    ImGui.TableNextRow();
-                    ImGui.TableSetColumnIndex(0);
-                    ImGui.TextUnformatted("Weather");
-                    ImGui.TableSetColumnIndex(1);
-                    ImGui.TextUnformatted(Weathers.WeatherString(adventure.RowId, _dataManager));
-                }
-            }
-
             var map = adventure.Level.Value.Map.Value;
             var territory = map.TerritoryType.Value;
             var worldPos = new Vector3(adventure.Level.Value.X, adventure.Level.Value.Y, adventure.Level.Value.Z);
-            if (ImGui.Button("Open map"))
+            if (_objectTable[0] is IGameObject obj && _clientState.TerritoryType == territory.RowId)
+            {
+                Vector3 difference = obj.Position - worldPos;
+                next = $" ({MathF.Sqrt(difference.X * difference.X + difference.Z * difference.Z):0}y){next}";
+            }
+            using (ImRaii.PushColor(ImGuiCol.Text, colour.GetValueOrDefault(), colour != null))
+                if (!ImGui.CollapsingHeader($"#{idx + 1:000} - {name.TextValue}{next}###adventure-{adventure.RowId}", flags: ImGuiTreeNodeFlags.DefaultOpen))
+                    continue;
+
+            if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Map))
                 _gameGui.OpenMapWithMapLink(territory.RowId, map.RowId, worldPos);
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip("Show vista on map");
             ImGui.SameLine();
-            if (ImGui.Button("Navigate to"))
+            if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.MapPin))
             {
                 _gameGui.OpenMapWithMapLink(territory.RowId, map.RowId, worldPos);
                 if (_clientState.TerritoryType == territory.RowId)
@@ -378,10 +364,56 @@ public sealed class MainWindow : Window, IDisposable
                 }
             }
             if (ImGui.IsItemHovered())
-                ImGui.SetTooltip("Currently, mounting is not done automatically. Mount up to start moving.");
+                ImGui.SetTooltip("Fly/walk to location\nCurrently, mounting is not done automatically. Mount up to start moving.");
             ImGui.SameLine();
-            if (ImGui.Button("Stop vnav"))
+            if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Stop))
                 _commandManager.ProcessCommand("/vnav stop");
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip("Stop vnav (for if it gets stuck)");
+
+            string? emote = adventure.Emote.ValueNullable?.TextCommand.ValueNullable?.Command.ExtractText();
+            if (emote != null && !emote.Equals("/lookout"))
+            {
+                using var table = ImRaii.Table("table", 2);
+                if (table)
+                {
+                    ImGui.TableSetupColumn("Label", ImGuiTableColumnFlags.WidthFixed,
+                        ImGui.CalcTextSize("Eorzea time").X + ImGui.GetStyle().ItemSpacing.X * 2);
+                    ImGui.TableSetupColumn("Value");
+
+                    ImGui.TableNextRow();
+                    ImGui.TableSetColumnIndex(0);
+                    ImGui.TextUnformatted("Command");
+                    ImGui.TableSetColumnIndex(1);
+                    ImGui.TextUnformatted(emote ?? "<unk>");
+
+                    if (adventure.MinTime != 0 || adventure.MaxTime != 0)
+                    {
+                        ImGui.TableNextRow();
+                        ImGui.TableSetColumnIndex(0);
+                        ImGui.TextUnformatted("Eorzea time");
+                        ImGui.TableSetColumnIndex(1);
+                        if (adventure.MinTime != 0 || adventure.MaxTime != 0)
+                        {
+                            ImGui.TextUnformatted($"{adventure.MinTime / 100:00}:00 to {adventure.MaxTime / 100 + 1:00}:00");
+                        }
+                        else
+                        {
+                            ImGui.TextUnformatted("Any");
+                        }
+                    }
+
+                    var weatherString = Weathers.WeatherString(adventure.RowId, _dataManager);
+                    if (!weatherString.Equals("Any"))
+                    {
+                        ImGui.TableNextRow();
+                        ImGui.TableSetColumnIndex(0);
+                        ImGui.TextUnformatted("Weather");
+                        ImGui.TableSetColumnIndex(1);
+                        ImGui.TextUnformatted(Weathers.WeatherString(adventure.RowId, _dataManager));
+                    }
+                }
+            }
         }
     }
     private string WeatherString(uint[] weathers)
@@ -392,6 +424,13 @@ public sealed class MainWindow : Window, IDisposable
             .Where(weather => weather.HasValue && weather.Value.RowId != 0)
             .Select(weather => weather!.Value.Name));
         return weatherString;
+    }
+
+    private uint AvailabilitySeconds(Adventure row)
+    {
+        if (row.NextAvailable(_weatherLuminaService) is (DateTimeOffset, DateTimeOffset) availability)
+            return (uint)(DateTime.Now - availability.end).TotalSeconds;
+        return 0;
     }
 
     private IEnumerable<IGrouping<uint, (Adventure row, int idx)>> GetAdventures()

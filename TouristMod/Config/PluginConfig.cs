@@ -12,6 +12,7 @@ public class PluginConfig : IPluginConfiguration
     public bool ShowTimeLeft { get; set; } = true;
     public bool ShowTimeUntilAvailable { get; set; } = true;
     public bool ShowUnavailable { get; set; } = true;
+    public bool ShowBlocked { get; set; }
     public SortMode SortMode { get; set; } = SortMode.Number;
     public int Version { get; set; } = 1;
 }
