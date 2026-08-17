@@ -34,6 +34,8 @@ public sealed class Plugin : HostedPlugin
         typeof(VfxService),
         typeof(VistaUnlockedListenerService),
         typeof(WindowService),
+        typeof(NotificationMasterIpc),
+        typeof(NotificationSchedulerService),
     ];
 
     public override void ConfigureContainer(ContainerBuilder containerBuilder)

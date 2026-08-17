@@ -35,11 +35,50 @@ public sealed class MainWindow : Window, IDisposable
     private readonly FFXIVWeatherLuminaService _weatherLuminaService;
     private readonly ExcelSheet<Weather> _weatherSheet;
     private readonly ICommandManager _commandManager;
+    private readonly NotificationSchedulerService _notificationScheduler;
     private readonly ReadOnlyDictionary<uint, uint> _territoryToAetherCurrentCompFlgSet;
 
     private static bool _arrVistasExpanded;
     private static DateTime _arrVistasExpandedDT;
     private static (int idx, float distance) _closest = (0, float.MaxValue);
+    public MainWindow(
+        IClientState clientState,
+        IObjectTable objectTable,
+        IDataManager dataManager,
+        IGameGui gameGui,
+        MarkerService markerService,
+        PluginConfig pluginConfig,
+        FFXIVWeatherLuminaService weatherLuminaService,
+        ConfigurationLoaderService configurationLoaderService,
+        NotificationSchedulerService notificationScheduler,
+        ExcelSheet<Adventure> adventureSheet,
+        ExcelSheet<Weather> weatherSheet,
+        ExcelSheet<TerritoryType> territoryType,
+        ICommandManager commandManager) : base("Tourist##MainWindow", ImGuiWindowFlags.MenuBar)
+    {
+        _dataManager = dataManager;
+        _pluginConfig = pluginConfig;
+        _clientState = clientState;
+        _objectTable = objectTable;
+        _gameGui = gameGui;
+        _weatherLuminaService = weatherLuminaService;
+        _markerService = markerService;
+        _configurationLoaderService = configurationLoaderService;
+        _notificationScheduler = notificationScheduler;
+        _adventureSheet = adventureSheet;
+        _weatherSheet = weatherSheet;
+        _commandManager = commandManager;
+        _territoryType = territoryType;
+        _territoryToAetherCurrentCompFlgSet = _territoryType
+            .Where(x => x.RowId > 0 && x.AetherCurrentCompFlgSet.RowId > 0)
+            .ToDictionary(x => x.RowId, x => x.AetherCurrentCompFlgSet.RowId)
+            .AsReadOnly();
+
+        Size = new Vector2(350, 450);
+        SizeCondition = ImGuiCond.FirstUseEver;
+        if (_pluginConfig.DefaultOpen)
+            IsOpen = true;
+    }
     private unsafe static bool ARRVistasExpanded
     {
         get
@@ -84,40 +123,6 @@ public sealed class MainWindow : Window, IDisposable
         { 265, "Can't fly in here, make sure you stop navigation before going through the door" },
     };
 
-    public MainWindow(
-        IClientState clientState,
-        IObjectTable objectTable,
-        IDataManager dataManager,
-        IGameGui gameGui,
-        MarkerService markerService,
-        PluginConfig pluginConfig,
-        FFXIVWeatherLuminaService weatherLuminaService,
-        ConfigurationLoaderService configurationLoaderService,
-        ExcelSheet<Adventure> adventureSheet,
-        ExcelSheet<Weather> weatherSheet,
-        ExcelSheet<TerritoryType> territoryType,
-        ICommandManager commandManager) : base("Tourist##MainWindow", ImGuiWindowFlags.MenuBar)
-    {
-        _dataManager = dataManager;
-        _pluginConfig = pluginConfig;
-        _clientState = clientState;
-        _objectTable = objectTable;
-        _gameGui = gameGui;
-        _weatherLuminaService = weatherLuminaService;
-        _markerService = markerService;
-        _configurationLoaderService = configurationLoaderService;
-        _adventureSheet = adventureSheet;
-        _weatherSheet = weatherSheet;
-        _commandManager = commandManager;
-        _territoryType = territoryType;
-        _territoryToAetherCurrentCompFlgSet = _territoryType
-            .Where(x => x.RowId > 0 && x.AetherCurrentCompFlgSet.RowId > 0)
-            .ToDictionary(x => x.RowId, x => x.AetherCurrentCompFlgSet.RowId)
-            .AsReadOnly();
-
-        Size = new Vector2(350, 450);
-        SizeCondition = ImGuiCond.FirstUseEver;
-    }
 
     public void Dispose() { }
 
@@ -163,7 +168,7 @@ public sealed class MainWindow : Window, IDisposable
 
         DrawOptionsMenu();
         DrawHelpMenu();
-        using var clock = ImRaii.Menu(DateUtil.EorzeaTime().ToString("H:mm"));
+        using var clock = ImRaii.Menu($"{DateUtil.EorzeaTime():H:mm} ET");
     }
 
     private void DrawOptionsMenu()
@@ -175,7 +180,14 @@ public sealed class MainWindow : Window, IDisposable
         DrawSortByMenu();
         DrawTimesMenu();
         DrawVisibilityMenu();
-        DrawArrVistasMenuItem();
+        DrawNotifyMenu();
+
+        var defaultOpen = _pluginConfig.DefaultOpen;
+        if (ImGui.MenuItem("Open automatically", ref defaultOpen))
+        {
+            _pluginConfig.DefaultOpen = defaultOpen;
+            _configurationLoaderService.Save();
+        }
     }
 
     private void DrawSortByMenu()
@@ -217,6 +229,9 @@ public sealed class MainWindow : Window, IDisposable
 
     private void DrawVisibilityMenu()
     {
+        using var menu = ImRaii.Menu("Visibility");
+        if (!menu)
+            return;
         var showFinished = _pluginConfig.ShowFinished;
         if (ImGui.MenuItem("Show finished", ref showFinished))
         {
@@ -242,6 +257,17 @@ public sealed class MainWindow : Window, IDisposable
         if (ImGui.MenuItem("Show inaccessible", ref showBlocked))
         {
             _pluginConfig.ShowBlocked = showBlocked;
+            _configurationLoaderService.Save();
+        }
+        DrawArrVistasMenuItem();
+    }
+
+    private void DrawNotifyMenu()
+    {
+        var notify = _pluginConfig.Notify;
+        if (ImGui.MenuItem("Notify 60 seconds before", ref notify))
+        {
+            _pluginConfig.Notify = notify;
             _configurationLoaderService.Save();
         }
     }
@@ -385,6 +411,15 @@ public sealed class MainWindow : Window, IDisposable
                 if (_closest.idx == 0 || _closest.distance > distance)
                     _closest = (idx, distance);
             }
+
+            if (countdown.HasValue && !has && !blocked)
+            {
+                var fireAt = countdown.Value - TimeSpan.FromSeconds(60);
+                if (fireAt > DateTimeOffset.UtcNow)
+                    _notificationScheduler.Schedule(idx, fireAt,
+                        $"#{idx + 1:000} {name.TextValue} {(!available ? "is available" : "ends")} in 60 seconds");
+            }
+
             using (ImRaii.PushColor(ImGuiCol.Text, colour.GetValueOrDefault(), colour != null))
                 if (!ImGui.CollapsingHeader($"#{idx + 1:000} - {name.TextValue}{next}###adventure-{adventure.RowId}", flags: ImGuiTreeNodeFlags.DefaultOpen))
                     continue;

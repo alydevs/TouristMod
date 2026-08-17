@@ -46,6 +46,12 @@
           "Lumina.Excel": "7.2.0"
         }
       },
+      "NotificationMasterAPI": {
+        "type": "Direct",
+        "requested": "[1.0.0.4, )",
+        "resolved": "1.0.0.4",
+        "contentHash": "i9WU0oWvybpmlFkagxiCLSpBHSZlvJbBe5QMP8WaCV7dSRtZg/kQf59xxTb/BsdFN9DXEKcTQ0OCCAVe9N/qEg=="
+      },
       "Autofac": {
         "type": "Transitive",
         "resolved": "9.0.0",
