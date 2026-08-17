@@ -72,12 +72,16 @@ public sealed class MainWindow : Window, IDisposable
         { 227, new(587.98975f, -42.814953f, -384.24127f) }, // Red Serai
         { 239, new(-390.17166f, 38.664627f, 548.02734f) }, // fort gohn
         { 241, new(-854.3621f, -82.97393f, 290.2913f) }, // covered halls
+        { 251, new(34.487827f, -16.146997f, 228.52016f) }, // scholars
+        { 254, new(0.30054197f, 2.5105362f, -53.76743f) }, // rostra
+        { 270, new(53.078583f, 117.62871f, -91.06518f) }, // Kadjaya
     };
 
     private readonly static Dictionary<int, string> comments = new() {
         { 140, "vnav couldn't fly inside this structure; the vista is inside on the left wall" },
         { 162, "Talk to npc, vista is inside tunnel, between crates on the right before the large spiral stairwell" },
         { 212, "Big jump. The chain is solid fyi." }, // eulmoran army hq
+        { 265, "Can't fly in here, make sure you stop navigation before going through the door" },
     };
 
     public MainWindow(
@@ -415,7 +419,7 @@ public sealed class MainWindow : Window, IDisposable
             bool time = adventure.MinTime != 0 || adventure.MaxTime != 0;
             bool weather = !Weathers.WeatherString(adventure.RowId, _dataManager).Equals("Any");
             string? comment = comments.GetValueOrDefault(idx + 1);
-            if ((emote != null && !emote.Equals("/lookout")) || time || weather || comment != null)
+            if ((emote != null && !emote.Equals("/lookout")) || time || weather || comment != null || countdown.HasValue)
             {
                 using var table = ImRaii.Table("table", 2);
                 if (table)
@@ -463,6 +467,18 @@ public sealed class MainWindow : Window, IDisposable
                         ImGui.TextUnformatted("Comment");
                         ImGui.TableSetColumnIndex(1);
                         ImGui.TextWrapped(comment);
+                    }
+
+                    if (countdown.HasValue)
+                    {
+                        ImGui.TableNextRow();
+                        ImGui.TableSetColumnIndex(0);
+                        if (available)
+                            ImGui.TextUnformatted("Next down");
+                        else
+                            ImGui.TextUnformatted("Next up");
+                        ImGui.TableSetColumnIndex(1);
+                        ImGui.TextWrapped($"{countdown.Value.ToLocalTime().ToString("G")}");
                     }
                 }
             }
