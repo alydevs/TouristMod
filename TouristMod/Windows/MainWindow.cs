@@ -38,8 +38,6 @@ public sealed class MainWindow : Window, IDisposable
     private readonly NotificationSchedulerService _notificationScheduler;
     private readonly ReadOnlyDictionary<uint, uint> _territoryToAetherCurrentCompFlgSet;
 
-    private static bool _arrVistasExpanded;
-    private static DateTime _arrVistasExpandedDT;
     private static (int idx, float distance) _closest = (0, float.MaxValue);
     public MainWindow(
         IClientState clientState,
@@ -79,7 +77,10 @@ public sealed class MainWindow : Window, IDisposable
         if (_pluginConfig.DefaultOpen)
             IsOpen = true;
     }
-    private unsafe static bool ARRVistasExpanded
+
+    private static bool _arrVistasExpanded;
+    private static DateTime _arrVistasExpandedDT;
+    internal unsafe static bool ARRVistasExpanded
     {
         get
         {

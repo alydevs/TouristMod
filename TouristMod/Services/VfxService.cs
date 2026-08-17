@@ -65,7 +65,7 @@ public unsafe class VfxService : IHostedService
                 case AddQueueAction add:
                     {
                         using var guard = Mutex.With();
-                        _pluginLog.Debug($"adding vfx for {add.Id}");
+                        _pluginLog.Debug($"adding vfx for {add.Id} {add.Path}");
                         if (Spawned.Remove(add.Id, out var existing))
                         {
                             _pluginLog.Warning($"vfx for {add.Id} already exists, queueing remove");
