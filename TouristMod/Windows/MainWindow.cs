@@ -6,6 +6,7 @@ using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
+using ECommons.Throttlers;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVWeather.Lumina;
@@ -37,7 +38,6 @@ public sealed class MainWindow : Window, IDisposable
     private readonly ICommandManager _commandManager;
     private readonly NotificationSchedulerService _notificationScheduler;
     private readonly ReadOnlyDictionary<uint, uint> _territoryToAetherCurrentCompFlgSet;
-    private DateTimeOffset _lastMarkerRefresh = DateTimeOffset.MinValue;
 
     private static (int idx, float distance) _closest = (0, float.MaxValue);
     public MainWindow(
@@ -97,7 +97,9 @@ public sealed class MainWindow : Window, IDisposable
 
     private readonly static Dictionary<int, Vector3> locationOverrides = new() {
         { 22, new(211.50587f, 113.49627f, -216.74307f) }, // summerford farm
+        { 31, new(-428.5311f, 69.81996f, 28.43267f) }, // thalaos
         { 45, new(-340.97287f, 21.293953f, 625.1788f) }, // south shroud landing
+        { 70, new(-483.05612f, 209.48744f, -279.20096f) }, // frozen fang
         { 104, new(867.34906f, 47.032375f, -32.1302f) }, // Voor Sian Siran
         { 117, new(543.2363f, 219.76675f, 652.7301f) }, // fractal continuum
         { 133, new(-392.68234f, 113.04094f, 122.56957f) }, // The Old Father
@@ -122,6 +124,7 @@ public sealed class MainWindow : Window, IDisposable
 
     private readonly static Dictionary<int, string> comments = new() {
         { 22, "vnav couldn't fly through this door; the vista is on an outcrop on the inside wall to the left" },
+        { 35, "Jump puzzle" },
         { 140, "vnav couldn't fly inside this structure; the vista is inside on the left wall" },
         { 162, "Talk to npc, vista is inside tunnel, between crates on the right before the large spiral stairwell" },
         { 212, "Big jump. The chain is solid fyi." }, // eulmoran army hq
@@ -135,11 +138,8 @@ public sealed class MainWindow : Window, IDisposable
     {
         DrawMenuBar();
 
-        if ((DateTimeOffset.UtcNow - _lastMarkerRefresh).TotalSeconds > 60)
-        {
+        if (EzThrottler.Throttle("RefreshARRMarkers", miliseconds: 15000))
             RefreshARRMarkers();
-            _lastMarkerRefresh = DateTimeOffset.UtcNow - TimeSpan.FromSeconds(DateTimeOffset.UtcNow.Second);
-        }
 
         var adventures = GetAdventures();
 
@@ -179,7 +179,6 @@ public sealed class MainWindow : Window, IDisposable
 
         DrawOptionsMenu();
         DrawHelpMenu();
-        using var clock = ImRaii.Menu($"{DateUtil.EorzeaTime():H:mm} ET");
     }
 
     private void DrawOptionsMenu()
