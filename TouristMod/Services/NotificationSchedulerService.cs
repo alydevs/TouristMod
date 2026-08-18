@@ -3,10 +3,11 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using TouristMod.Config;
 
 namespace TouristMod.Services;
 
-public sealed class NotificationSchedulerService(NotificationMasterIpc ipc, IPluginLog log) : IDisposable
+public sealed class NotificationSchedulerService(NotificationMasterIpc ipc, IPluginLog log, PluginConfig config) : IDisposable
 {
     private readonly ConcurrentDictionary<int, DateTimeOffset> _scheduled = new();
     private readonly CancellationTokenSource _cts = new();
@@ -33,9 +34,14 @@ public sealed class NotificationSchedulerService(NotificationMasterIpc ipc, IPlu
                 await Task.Delay(delay, ct);
 
             // Re-check we're still the current scheduled entry (avoid stale fires).
-            if (_scheduled.TryGetValue(idx, out var current) && current == fireAt)
+            if (_scheduled.TryGetValue(idx, out var current) && current == fireAt && config.Notify)
             {
                 ipc.DisplayTray("Tourist", message);
+                _scheduled.TryRemove(new KeyValuePair<int, DateTimeOffset>(idx, fireAt));
+            }
+            if (!config.Notify)
+            {
+                log.Debug("Notify was disabled before scheduled task could complete");
                 _scheduled.TryRemove(new KeyValuePair<int, DateTimeOffset>(idx, fireAt));
             }
         }

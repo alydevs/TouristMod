@@ -37,6 +37,7 @@ public sealed class MainWindow : Window, IDisposable
     private readonly ICommandManager _commandManager;
     private readonly NotificationSchedulerService _notificationScheduler;
     private readonly ReadOnlyDictionary<uint, uint> _territoryToAetherCurrentCompFlgSet;
+    private DateTimeOffset _lastMarkerRefresh = DateTimeOffset.MinValue;
 
     private static (int idx, float distance) _closest = (0, float.MaxValue);
     public MainWindow(
@@ -95,6 +96,8 @@ public sealed class MainWindow : Window, IDisposable
     }
 
     private readonly static Dictionary<int, Vector3> locationOverrides = new() {
+        { 22, new(211.50587f, 113.49627f, -216.74307f) }, // summerford farm
+        { 45, new(-340.97287f, 21.293953f, 625.1788f) }, // south shroud landing
         { 104, new(867.34906f, 47.032375f, -32.1302f) }, // Voor Sian Siran
         { 117, new(543.2363f, 219.76675f, 652.7301f) }, // fractal continuum
         { 133, new(-392.68234f, 113.04094f, 122.56957f) }, // The Old Father
@@ -118,6 +121,7 @@ public sealed class MainWindow : Window, IDisposable
     };
 
     private readonly static Dictionary<int, string> comments = new() {
+        { 22, "vnav couldn't fly through this door; the vista is on an outcrop on the inside wall to the left" },
         { 140, "vnav couldn't fly inside this structure; the vista is inside on the left wall" },
         { 162, "Talk to npc, vista is inside tunnel, between crates on the right before the large spiral stairwell" },
         { 212, "Big jump. The chain is solid fyi." }, // eulmoran army hq
@@ -130,6 +134,12 @@ public sealed class MainWindow : Window, IDisposable
     public override void Draw()
     {
         DrawMenuBar();
+
+        if ((DateTimeOffset.UtcNow - _lastMarkerRefresh).TotalSeconds > 60)
+        {
+            RefreshARRMarkers();
+            _lastMarkerRefresh = DateTimeOffset.UtcNow - TimeSpan.FromSeconds(DateTimeOffset.UtcNow.Second);
+        }
 
         var adventures = GetAdventures();
 
@@ -282,17 +292,17 @@ public sealed class MainWindow : Window, IDisposable
         _pluginConfig.ShowArrVistas = showArrVistas;
         _configurationLoaderService.Save();
 
-        if (showArrVistas)
-        {
-            _markerService.SpawnVfxForCurrentZone();
-        }
-        else
-        {
-            _markerService.RemoveAllVfx();
-        }
+        RefreshARRMarkers();
     }
 
-    private void DrawHelpMenu()
+    private void RefreshARRMarkers()
+    {
+        _markerService.RemoveAllVfx();
+        if (_pluginConfig.ShowArrVistas)
+            _markerService.SpawnVfxForCurrentZone();
+    }
+
+    private static void DrawHelpMenu()
     {
         using var menu = ImRaii.Menu("Help");
         if (!menu)
@@ -413,7 +423,7 @@ public sealed class MainWindow : Window, IDisposable
                     _closest = (idx, distance);
             }
 
-            if (countdown.HasValue && !has && !blocked)
+            if (countdown.HasValue && !has && !blocked && _pluginConfig.Notify)
             {
                 var fireAt = countdown.Value - TimeSpan.FromSeconds(60);
                 if (fireAt > DateTimeOffset.UtcNow)
@@ -422,7 +432,7 @@ public sealed class MainWindow : Window, IDisposable
             }
 
             using (ImRaii.PushColor(ImGuiCol.Text, colour.GetValueOrDefault(), colour != null))
-                if (!ImGui.CollapsingHeader($"#{idx + 1:000} - {name.TextValue}{next}###adventure-{adventure.RowId}", flags: ImGuiTreeNodeFlags.DefaultOpen))
+                if (!ImGui.CollapsingHeader($"#{idx + 1:000} - {name.TextValue}{next}###adventure-{adventure.RowId}"))
                     continue;
 
             if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Map))
