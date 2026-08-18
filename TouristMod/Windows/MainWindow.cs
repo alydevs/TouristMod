@@ -98,7 +98,10 @@ public sealed class MainWindow : Window, IDisposable
     private readonly static Dictionary<int, Vector3> locationOverrides = new() {
         { 22, new(211.50587f, 113.49627f, -216.74307f) }, // summerford farm
         { 31, new(-428.5311f, 69.81996f, 28.43267f) }, // thalaos
+        { 32, new(382.1901f, 5.188155f, 198.83205f) }, // jijiroon
+        { 36, new(-301.0401f, 5.3800077f, -570.60455f) }, // hermit
         { 45, new(-340.97287f, 21.293953f, 625.1788f) }, // south shroud landing
+        { 69, new(190.3045f, 234.47398f, 406.9958f) },
         { 70, new(-483.05612f, 209.48744f, -279.20096f) }, // frozen fang
         { 104, new(867.34906f, 47.032375f, -32.1302f) }, // Voor Sian Siran
         { 117, new(543.2363f, 219.76675f, 652.7301f) }, // fractal continuum
@@ -125,6 +128,8 @@ public sealed class MainWindow : Window, IDisposable
     private readonly static Dictionary<int, string> comments = new() {
         { 22, "vnav couldn't fly through this door; the vista is on an outcrop on the inside wall to the left" },
         { 35, "Jump puzzle" },
+        { 36, "Inside house, upstairs above door" },
+        { 69, "vnav couldn't nav inside this building; the vista is on one of the hanging lamps in the middle" },
         { 140, "vnav couldn't fly inside this structure; the vista is inside on the left wall" },
         { 162, "Talk to npc, vista is inside tunnel, between crates on the right before the large spiral stairwell" },
         { 212, "Big jump. The chain is solid fyi." }, // eulmoran army hq
