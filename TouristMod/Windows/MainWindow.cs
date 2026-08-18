@@ -100,9 +100,15 @@ public sealed class MainWindow : Window, IDisposable
         { 31, new(-428.5311f, 69.81996f, 28.43267f) }, // thalaos
         { 32, new(382.1901f, 5.188155f, 198.83205f) }, // jijiroon
         { 36, new(-301.0401f, 5.3800077f, -570.60455f) }, // hermit
+        { 38, new(171.93164f, 17.499977f, -266.29816f) }, // lancer
+        { 39, new(97.25184f, 2.5988786f, -73.968216f) }, // bannock
         { 45, new(-340.97287f, 21.293953f, 625.1788f) }, // south shroud landing
-        { 69, new(190.3045f, 234.47398f, 406.9958f) },
+        { 50, new(-286.03262f, -8.654527f, 272.75266f) }, // alder springs
+        { 63, new(34.256702f, 36.56745f, 213.31671f) }, // east watchtower
+        { 66, new(-73.622925f, 73.56991f, -196.73103f) }, // raubahn
+        { 69, new(190.3045f, 234.47398f, 406.9958f) }, // observatorium
         { 70, new(-483.05612f, 209.48744f, -279.20096f) }, // frozen fang
+        { 72, new(-683.1892f, 315.5668f, 373.26578f) }, // boulder downs
         { 104, new(867.34906f, 47.032375f, -32.1302f) }, // Voor Sian Siran
         { 117, new(543.2363f, 219.76675f, 652.7301f) }, // fractal continuum
         { 133, new(-392.68234f, 113.04094f, 122.56957f) }, // The Old Father
@@ -129,10 +135,14 @@ public sealed class MainWindow : Window, IDisposable
         { 22, "vnav couldn't fly through this door; the vista is on an outcrop on the inside wall to the left" },
         { 35, "Jump puzzle" },
         { 36, "Inside house, upstairs above door" },
+        { 38, "Jump across weapon racks" },
+        { 50, "The vista is on a branch sticking out of the cliff below" },
+        { 63, "Can't land on the flag" },
+        { 66, "Can't land on the spike" },
         { 69, "vnav couldn't nav inside this building; the vista is on one of the hanging lamps in the middle" },
         { 140, "vnav couldn't fly inside this structure; the vista is inside on the left wall" },
         { 162, "Talk to npc, vista is inside tunnel, between crates on the right before the large spiral stairwell" },
-        { 212, "Big jump. The chain is solid fyi." }, // eulmoran army hq
+        { 212, "Big jump. The chain is solid fyi." },
         { 265, "Can't fly in here, make sure you stop navigation before going through the door" },
     };
 
